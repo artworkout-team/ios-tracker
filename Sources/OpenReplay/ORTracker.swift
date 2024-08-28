@@ -72,7 +72,8 @@ open class Openreplay: NSObject {
         ORSessionRequest.create(doNotRecord: false) { sessionResponse in
             guard let sessionResponse = sessionResponse else { return DebugUtils.log("Openreplay: no response from /start request") }
             self.sessionStartTs = UInt64(Date().timeIntervalSince1970 * 1000)
-            let captureSettings = getCaptureSettings(fps: 3, quality: "high") // getCaptureSettings(fps: sessionResponse.fps, quality: sessionResponse.quality)
+            // let captureSettings = getCaptureSettings(fps: 3, quality: "high") // getCaptureSettings(fps: sessionResponse.fps, quality: sessionResponse.quality)
+            let captureSettings = options.captureSettings
             ScreenshotManager.shared.setSettings(settings: captureSettings)
             
             MessageCollector.shared.start()
@@ -107,7 +108,8 @@ open class Openreplay: NSObject {
             guard let sessionResponse = sessionResponse else { return DebugUtils.log("Openreplay: no response from /start request") }
             self.sessionStartTs = UInt64(Date().timeIntervalSince1970 * 1000)
             ConditionsManager.shared.getConditions(projectId: sessionResponse.projectID, token: sessionResponse.token)
-            let captureSettings = getCaptureSettings(fps: sessionResponse.fps, quality: sessionResponse.quality)
+            // let captureSettings = getCaptureSettings(fps: sessionResponse.fps, quality: sessionResponse.quality)
+            let captureSettings = options.captureSettings
 
             MessageCollector.shared.cycleBuffer()
 

@@ -172,7 +172,7 @@ extension Data {
         }
         let length = count - oldLength
         if length == 0 && !(value is NSNull) {
-            print("Nothing was written for \(String(describing: type(of: value))):\(value) ")
+            DebugUtils.log("Nothing was written for \(String(describing: type(of: value))):\(value) ")
         }
     }
 
@@ -190,7 +190,7 @@ extension Data {
             let valueData = try NSKeyedArchiver.archivedData(withRootObject: coding, requiringSecureCoding: true)
             writeData(valueData, sizePrefix: true)
         } catch {
-            print("Unexpected error: \(error).")
+            DebugUtils.log("Unexpected error: \(error).")
         }
     }
 

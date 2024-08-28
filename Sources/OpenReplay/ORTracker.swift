@@ -42,13 +42,13 @@ open class Openreplay: NSObject {
                 }
                 if options.wifiOnly {
                     self.trackerState = CheckState.cantStart
-                    print("Connected to Cellular and options.wifiOnly is true. Openreplay will not start.")
+                    DebugUtils.log("Connected to Cellular and options.wifiOnly is true. Openreplay will not start.")
                 } else {
                     self.trackerState = CheckState.canStart
                 }
             } else {
                 self.trackerState = CheckState.cantStart
-                print("Not connected to either WiFi or Cellular. Openreplay will not start.")
+                DebugUtils.log("Not connected to either WiFi or Cellular. Openreplay will not start.")
             }
         }
         
@@ -66,7 +66,7 @@ open class Openreplay: NSObject {
     @objc open func startSession(projectKey: String, options: OROptions) {
         self.projectKey = projectKey
         ORSessionRequest.create(doNotRecord: false) { sessionResponse in
-            guard let sessionResponse = sessionResponse else { return print("Openreplay: no response from /start request") }
+            guard let sessionResponse = sessionResponse else { return DebugUtils.log("Openreplay: no response from /start request") }
             self.sessionStartTs = UInt64(Date().timeIntervalSince1970 * 1000)
             let captureSettings = getCaptureSettings(fps: 3, quality: "high") // getCaptureSettings(fps: sessionResponse.fps, quality: sessionResponse.quality)
             ScreenshotManager.shared.setSettings(settings: captureSettings)
@@ -100,7 +100,7 @@ open class Openreplay: NSObject {
         self.projectKey = projectKey
         self.bufferingMode = true
         ORSessionRequest.create(doNotRecord: true) { sessionResponse in
-            guard let sessionResponse = sessionResponse else { return print("Openreplay: no response from /start request") }
+            guard let sessionResponse = sessionResponse else { return DebugUtils.log("Openreplay: no response from /start request") }
             self.sessionStartTs = UInt64(Date().timeIntervalSince1970 * 1000)
             ConditionsManager.shared.getConditions(projectId: sessionResponse.projectID, token: sessionResponse.token)
             let captureSettings = getCaptureSettings(fps: sessionResponse.fps, quality: sessionResponse.quality)
@@ -134,7 +134,7 @@ open class Openreplay: NSObject {
     @objc open func triggerRecording(condition: String?) {
         self.bufferingMode = false
         ORSessionRequest.create(doNotRecord: false) { sessionResponse in
-            guard let sessionResponse = sessionResponse else { return print("Openreplay: no response from /start request") }
+            guard let sessionResponse = sessionResponse else { return DebugUtils.log("Openreplay: no response from /start request") }
             
             // sending buffered messages and images - should not be bigger than 30sec buffer,
             // so the performance impact is minimal (as long as fps was lower than 10)

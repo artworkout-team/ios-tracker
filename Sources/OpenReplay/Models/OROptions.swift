@@ -15,7 +15,7 @@ open class OROptions: NSObject {
     let wifiOnly: Bool
     let debugLogs: Bool
     let debugImages: Bool
-    var captureSettings: (captureRate: Double, imgCompression: Double) = (captureRate: 0.33, imgCompression: 0.5)
+    public var captureSettings: (captureRate: Double, imgCompression: Double) = (captureRate: 0.33, imgCompression: 0.5)
     
     public static let defaults = OROptions(crashes: true, analytics: true, performances: true, logs: true, screen: true, wifiOnly: true, debugLogs: false, debugImages: false)
 

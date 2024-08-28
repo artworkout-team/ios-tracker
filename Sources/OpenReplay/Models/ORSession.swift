@@ -81,6 +81,16 @@ struct ORSessionResponse: Decodable {
 }
 
 extension ORSessionResponse {
+    enum CodingKeys: CodingKey {
+        case userUUID
+        case token
+        case imagesHashList
+        case sessionID
+        case fps
+        case quality
+        case projectID
+    }
+    
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.userUUID = try container.decode(String.self, forKey: .userUUID)

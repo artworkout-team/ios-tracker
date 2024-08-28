@@ -31,6 +31,9 @@ open class Openreplay: NSObject {
         monitor.start(queue: q)
         
         monitor.pathUpdateHandler = { path in
+            #if targetEnvironment(simulator)
+            self.trackerState = CheckState.canStart
+            #else
             if path.usesInterfaceType(.wifi) {
                 if PerformanceListener.shared.isActive {
                     PerformanceListener.shared.networkStateChange(1)
@@ -50,6 +53,7 @@ open class Openreplay: NSObject {
                 self.trackerState = CheckState.cantStart
                 DebugUtils.log("Not connected to either WiFi or Cellular. Openreplay will not start.")
             }
+            #endif
         }
         
         networkCheckTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true, block: { (_) in

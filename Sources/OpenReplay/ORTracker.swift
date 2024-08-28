@@ -72,7 +72,8 @@ open class Openreplay: NSObject {
         ORSessionRequest.create() { sessionResponse in
             guard let sessionResponse = sessionResponse else { return DebugUtils.log("Openreplay: no response from /start request") }
             self.sessionStartTs = UInt64(Date().timeIntervalSince1970 * 1000)
-            let captureSettings = getCaptureSettings(fps: sessionResponse.fps, quality: sessionResponse.quality)
+            // let captureSettings = getCaptureSettings(fps: sessionResponse.fps, quality: sessionResponse.quality)
+            let captureSettings = options.captureSettings
             ScreenshotManager.shared.setSettings(settings: captureSettings)
             
             MessageCollector.shared.start()

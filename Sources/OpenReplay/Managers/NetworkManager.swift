@@ -72,6 +72,9 @@ class NetworkManager: NSObject {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         callAPI(request: request) { (data) in
             do {
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    DebugUtils.log("createSession: \(json)")
+                }
                 let session = try JSONDecoder().decode(ORSessionResponse.self, from: data)
                 
                 self.token = session.token

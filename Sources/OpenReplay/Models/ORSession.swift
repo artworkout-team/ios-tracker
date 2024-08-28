@@ -41,7 +41,7 @@ class ORSessionRequest: NSObject {
             "revID": Bundle(for: Openreplay.shared.classForCoder).object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "N/A",
             "userUUID": ORUserDefaults.shared.userUUID,
             "userOSVersion": UIDevice.current.systemVersion,
-            "userDevice": deviceModel,
+            "userDevice": "Unknown",
             "userDeviceType": "tablet",
             "timestamp": UInt64(Date().timeIntervalSince1970 * 1000),
             "performances": performances,

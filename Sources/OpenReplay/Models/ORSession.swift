@@ -42,11 +42,14 @@ class ORSessionRequest: NSObject {
             "userUUID": ORUserDefaults.shared.userUUID,
             "userOSVersion": UIDevice.current.systemVersion,
             "userDevice": deviceModel,
-            "userDeviceType": deviceSafeName,
+            "userDeviceType": "tablet",
             "timestamp": UInt64(Date().timeIntervalSince1970 * 1000),
             "performances": performances,
             "deviceMemory": UInt64(ProcessInfo.processInfo.physicalMemory / 1024),
             "timezone": getTimezone(),
+            "width": UInt64(UIScreen.main.bounds.width),
+            "height": UInt64(UIScreen.main.bounds.height),
+            "platform": "Android"
         ]
         callAPI(completion: completion)
     }

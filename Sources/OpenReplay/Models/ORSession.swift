@@ -80,29 +80,6 @@ struct ORSessionResponse: Decodable {
     let projectID: String
 }
 
-extension ORSessionResponse {
-    enum CodingKeys: CodingKey {
-        case userUUID
-        case token
-        case imagesHashList
-        case sessionID
-        case fps
-        case quality
-        case projectID
-    }
-    
-    init(from decoder: any Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.userUUID = try container.decode(String.self, forKey: .userUUID)
-        self.token = try container.decode(String.self, forKey: .token)
-        self.imagesHashList = try container.decodeIfPresent([String].self, forKey: .imagesHashList)
-        self.sessionID = try container.decode(String.self, forKey: .sessionID)
-        self.fps = try container.decode(Int.self, forKey: .fps)
-        self.quality = try container.decode(String.self, forKey: .quality)
-        self.projectID = try container.decodeIfPresent(String.self, forKey: .projectID) ?? "FIcMkYwRybXQtQG5Zu8L"
-    }
-}
-
 func getTimezone() -> String {
     let offset = TimeZone.current.secondsFromGMT()
     let sign = offset >= 0 ? "+" : "-"

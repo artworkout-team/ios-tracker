@@ -171,6 +171,17 @@ open class Openreplay: NSObject {
     @objc open func event(name: String, object: NSObject?) {
         event(name: name, payload: object as? Encodable)
     }
+    
+    open func event(name: String, payload: [String: Any]?) {
+        var json = ""
+        if let payload = payload,
+           let data = try? JSONSerialization.data(withJSONObject: payload),
+           let jsonStr = String(data: data, encoding: .utf8) {
+            json = jsonStr
+        }
+        let message = ORIOSEvent(name: name, payload: json)
+        MessageCollector.shared.sendMessage(message)
+    }
 
     open func event(name: String, payload: Encodable?) {
         var json = ""

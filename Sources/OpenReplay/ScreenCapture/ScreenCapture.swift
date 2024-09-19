@@ -28,10 +28,16 @@ open class ScreenshotManager {
     private var screenScale = 1.25
     private var settings: (captureRate: Double, imgCompression: Double) = (captureRate: 0.33, imgCompression: 0.5)
     
+    private var inBackground = false
+    
     private init() { }
 
     func start(startTs: UInt64) {
         firstTs = startTs
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(pause), name: UIApplication.didEnterBackgroundNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(resume), name: UIApplication.willEnterForegroundNotification, object: nil)
+        
         startTakingScreenshots(every: settings.captureRate)
     }
     
@@ -44,6 +50,16 @@ open class ScreenshotManager {
         timer = nil
         lastTs = 0
         screenshots.removeAll()
+        NotificationCenter.default.removeObserver(self, name: UIApplication.didEnterBackgroundNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIApplication.willEnterForegroundNotification, object: nil)
+    }
+    
+    @objc func pause() {
+        inBackground = true
+    }
+    
+    @objc func resume() {
+        inBackground = false
     }
     
     func startTakingScreenshots(every interval: TimeInterval) {
@@ -70,6 +86,7 @@ open class ScreenshotManager {
 
     // MARK: - UI Capturing
     func takeScreenshot() {
+        guard !inBackground else { return }
         let window = UIApplication.shared.windows.first { $0.isKeyWindow }
         let size = window?.frame.size ?? CGSize.zero
         UIGraphicsBeginImageContextWithOptions(size, false, screenScale)

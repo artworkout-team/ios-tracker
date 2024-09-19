@@ -179,7 +179,7 @@ open class Openreplay: NSObject {
            let jsonStr = String(data: data, encoding: .utf8) {
             json = jsonStr
         }
-        let message = ORIOSEvent(name: name, payload: json)
+        let message = ORMobileEvent(name: name, payload: json)
         MessageCollector.shared.sendMessage(message)
     }
 

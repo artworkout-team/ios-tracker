@@ -344,31 +344,39 @@ open class ScreenshotManager {
 
 // MARK: making extensions for UI
 struct SensitiveViewWrapperRepresentable: UIViewRepresentable {
+    let enabled: Bool
     @Binding var viewWrapper: SensitiveViewWrapper?
 
     func makeUIView(context: Context) -> SensitiveViewWrapper {
         let wrapper = SensitiveViewWrapper()
-        Task { @MainActor in
-            viewWrapper = wrapper
-        }
+        setViewWrapper(wrapper)
         return wrapper
     }
 
-    func updateUIView(_ uiView: SensitiveViewWrapper, context: Context) { }
+    func updateUIView(_ wrapper: SensitiveViewWrapper, context: Context) {
+        setViewWrapper(enabled ? wrapper : nil)
+    }
+    
+    func setViewWrapper(_ wrapper: SensitiveViewWrapper?) {
+        guard viewWrapper != wrapper else { return }
+        Task { @MainActor in viewWrapper = wrapper }
+    }
 }
 
 struct SensitiveModifier: ViewModifier {
+    let enabled: Bool
+    
     @State private var viewWrapper: SensitiveViewWrapper?
 
     func body(content: Content) -> some View {
         content
-            .background(SensitiveViewWrapperRepresentable(viewWrapper: $viewWrapper))
+            .background(SensitiveViewWrapperRepresentable(enabled: enabled, viewWrapper: $viewWrapper))
     }
 }
 
 public extension View {
-    func sensitive() -> some View {
-        self.modifier(SensitiveModifier())
+    func sensitive(enabled: Bool = true) -> some View {
+        self.modifier(SensitiveModifier(enabled: enabled))
     }
 }
 

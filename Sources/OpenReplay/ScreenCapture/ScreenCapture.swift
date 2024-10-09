@@ -92,12 +92,8 @@ open class ScreenshotManager {
         let size = window.frame.size
         
         let format: UIGraphicsImageRendererFormat = .default()
-        // This can significantly improve rendering performance because the renderer won't need to
-        // process transparency.
         format.opaque = true
-        // as stated by PostHog https://github.com/PostHog/posthog-ios/blob/main/PostHog/Replay/UIView%2BUtil.swift
-        // Another way to improve rendering performance is to scale the renderer's content.
-        // format.scale = 0.5
+        format.scale = screenScale
         let renderer = UIGraphicsImageRenderer(size: size, format: format)
         
         let image = renderer.image { context in
@@ -352,7 +348,9 @@ struct SensitiveViewWrapperRepresentable: UIViewRepresentable {
 
     func makeUIView(context: Context) -> SensitiveViewWrapper {
         let wrapper = SensitiveViewWrapper()
-        viewWrapper = wrapper
+        Task { @MainActor in
+            viewWrapper = wrapper
+        }
         return wrapper
     }
 

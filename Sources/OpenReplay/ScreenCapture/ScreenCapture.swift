@@ -21,7 +21,7 @@ open class ScreenshotManager {
     private var firstTs: UInt64 = 0
     // MARK: capture settings
     // should we blur out sensitive views, or place a solid box on top
-    private var isBlurMode = true
+    private var isBlurMode = false
     private var blurRadius = 2.5
     // this affects how big the image will be compared to real phone screan.
     // we also can use default UIScreen.main.scale which is around 3.0 (dense pixel screen)
@@ -83,9 +83,53 @@ open class ScreenshotManager {
         }
         sanitizedElements.removeAll { $0 as AnyObject === element as AnyObject }
     }
+    
+    /// Our implementation of takeScreenshot
+    func takeScreenshot() {
+        guard !inBackground else { return }
+        let window = UIApplication.shared.windows.first { $0.isKeyWindow }
+        guard let window else { return }
+        let size = window.frame.size
+        
+        let format: UIGraphicsImageRendererFormat = .default()
+        // This can significantly improve rendering performance because the renderer won't need to
+        // process transparency.
+        format.opaque = true
+        // as stated by PostHog https://github.com/PostHog/posthog-ios/blob/main/PostHog/Replay/UIView%2BUtil.swift
+        // Another way to improve rendering performance is to scale the renderer's content.
+        // format.scale = 0.5
+        let renderer = UIGraphicsImageRenderer(size: size, format: format)
+        
+        let image = renderer.image { context in
+            window.drawHierarchy(in: window.bounds, afterScreenUpdates: false)
+            
+            if isBlurMode {
+                fatalError("Blur mode is not supported yet")
+            } else {
+                // UIColor.blue.setFill()
+                UIColor.black.setFill()
+                for element in sanitizedElements {
+                    if let frame = element.frameInWindow {
+                        context.fill(frame)
+                    }
+                }
+            }
+        }
+        
+        if let compressedData = image.jpegData(compressionQuality: self.settings.imgCompression) {
+            if (Openreplay.shared.bufferingMode) {
+                self.screenshotsBackup.append((compressedData, UInt64(Date().timeIntervalSince1970 * 1000)))
+            }
+            screenshots.append((compressedData, UInt64(Date().timeIntervalSince1970 * 1000)))
+            if !Openreplay.shared.bufferingMode && screenshots.count >= 20 {
+                self.sendScreenshots()
+            }
+        }
+    }
 
     // MARK: - UI Capturing
-    func takeScreenshot() {
+    /// OpenReplay's takeScreenshots (crashing)
+    func _takeScreenshot() {
         guard !inBackground else { return }
         let window = UIApplication.shared.windows.first { $0.isKeyWindow }
         let size = window?.frame.size ?? CGSize.zero

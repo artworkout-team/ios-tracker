@@ -84,6 +84,7 @@ open class ScreenshotManager {
     }
 
     public func addSanitizedElement(_ element: Sanitizable) {
+        guard !sanitizedElements.contains(where: { $0 as AnyObject === element as AnyObject }) else { return }
         if (Openreplay.shared.options.debugLogs) {
             DebugUtils.log("addSanitizedElement")
         }

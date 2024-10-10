@@ -93,7 +93,7 @@ open class ScreenshotManager {
         
         let format: UIGraphicsImageRendererFormat = .default()
         format.opaque = true
-        format.scale = 0.5 // screenScale
+        format.scale = screenScale
         let renderer = UIGraphicsImageRenderer(size: size, format: format)
         
         let compressedData = renderer.jpegData(withCompressionQuality: self.settings.imgCompression) { context in

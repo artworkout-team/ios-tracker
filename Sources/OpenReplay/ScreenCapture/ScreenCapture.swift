@@ -420,22 +420,25 @@ struct SensitiveViewWrapperRepresentable: UIViewRepresentable {
     func updateUIView(_ wrapper: SensitiveViewWrapper, context: Context) {}
 }
 
+@available(iOS 14, *)
 struct SensitiveModifier: ViewModifier {
-    let enabled: Bool
-    
     @State private var viewWrapper: SensitiveViewWrapper?
+    @State private var isVisible = false
 
     func body(content: Content) -> some View {
         content
             .background(SensitiveViewWrapperRepresentable(viewWrapper: $viewWrapper))
-            .onAppear { viewWrapper?.onVisibilityChange(enabled) }
-            .onDisappear { viewWrapper?.onVisibilityChange(false) }
+            .onAppear { isVisible = true }
+            .onDisappear { isVisible = false }
+            .onChange(of: isVisible) { viewWrapper?.onVisibilityChange($0) }
+            .onChange(of: viewWrapper) { $0?.onVisibilityChange(isVisible) }
     }
 }
 
 public extension View {
-    func sensitive(enabled: Bool = true) -> some View {
-        self.modifier(SensitiveModifier(enabled: enabled))
+    @available(iOS 14, *)
+    func sensitive() -> some View {
+        self.modifier(SensitiveModifier())
     }
 }
 

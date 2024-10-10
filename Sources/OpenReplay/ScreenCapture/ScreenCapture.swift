@@ -160,9 +160,10 @@ open class ScreenshotManager {
                                 context.cgContext.stroke(convertedFrame)
                             }
                         }
-                    } else {
-                        removeSanitizedElement(element)
                     }
+//                    else {
+//                        removeSanitizedElement(element)
+//                    }
                 }
             } else {
                 // UIColor.blue.setFill()
@@ -170,9 +171,10 @@ open class ScreenshotManager {
                 for element in sanitizedElements {
                     if let frame = element.frameInWindow {
                         context.fill(frame)
-                    } else {
-                        removeSanitizedElement(element)
                     }
+//                    else {
+//                        removeSanitizedElement(element)
+//                    }
                 }
             }
         }

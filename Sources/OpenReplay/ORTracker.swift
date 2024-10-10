@@ -167,6 +167,14 @@ open class Openreplay: NSObject {
         ScreenshotManager.shared.setBlurMode(isActive)
     }
     
+    @objc open func setBlurRadius(_ radius: Double) {
+        ScreenshotManager.shared.setBlurRadius(radius)
+    }
+    
+    @objc open func setDrawHierarchyHandler(_ handler: @escaping (Bool) -> Void) {
+        ScreenshotManager.shared.setDrawHierarchyHandler(handler)
+    }
+    
     @objc open func setMetadata(key: String, value: String) {
         let message = ORMobileMetadata(key: key, value: value)
         MessageCollector.shared.sendMessage(message)

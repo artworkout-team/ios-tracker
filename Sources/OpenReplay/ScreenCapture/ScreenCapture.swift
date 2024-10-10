@@ -29,6 +29,7 @@ open class ScreenshotManager {
     private var settings: (captureRate: Double, imgCompression: Double) = (captureRate: 0.33, imgCompression: 0.5)
     
     private var inBackground = false
+    private var drawHierarchyHandler: ((Bool) -> Void)?
     
     private init() { }
 
@@ -47,6 +48,14 @@ open class ScreenshotManager {
     
     func setBlurMode(_ isActive: Bool) {
         isBlurMode = isActive
+    }
+    
+    func setBlurRadius(_ radius: Double) {
+        blurRadius = radius
+    }
+    
+    func setDrawHierarchyHandler(_ handler: @escaping (Bool) -> Void) {
+        drawHierarchyHandler = handler
     }
     
     func stop() {
@@ -101,7 +110,9 @@ open class ScreenshotManager {
         let renderer = UIGraphicsImageRenderer(size: size, format: format)
         
         let compressedData = renderer.jpegData(withCompressionQuality: self.settings.imgCompression) { context in
+            drawHierarchyHandler?(true)
             window.drawHierarchy(in: window.bounds, afterScreenUpdates: false)
+            drawHierarchyHandler?(false)
             
             if isBlurMode {
                 let stripeWidth: CGFloat = 5.0

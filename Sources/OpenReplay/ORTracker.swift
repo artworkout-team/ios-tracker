@@ -163,6 +163,10 @@ open class Openreplay: NSObject {
         ScreenshotManager.shared.addSanitizedElement(view)
     }
     
+    @objc open func removeIgnoredView(_ view: UIView) {
+        ScreenshotManager.shared.removeSanitizedElement(view)
+    }
+    
     @objc open func setBlurMode(_ isActive: Bool) {
         ScreenshotManager.shared.setBlurMode(isActive)
     }

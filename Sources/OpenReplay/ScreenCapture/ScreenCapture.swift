@@ -434,6 +434,8 @@ struct SensitiveModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .background(SensitiveViewWrapperRepresentable(enabled: enabled, viewWrapper: $viewWrapper))
+            .onAppear { viewWrapper?.onVisibilityChange(true) }
+            .onDisappear { viewWrapper?.onVisibilityChange(false) }
     }
 }
 
@@ -444,9 +446,24 @@ public extension View {
 }
 
 class SensitiveViewWrapper: UIView {
+    var onVisibilityChange: (Bool) -> Void = { _ in }
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        onVisibilityChange = { [weak self] in self?.visibilityChanged(to: $0) }
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func didMoveToSuperview() {
         super.didMoveToSuperview()
-        if self.superview != nil {
+        visibilityChanged(to: self.superview != nil)
+    }
+    
+    private func visibilityChanged(to visible: Bool) {
+        if visible {
             ScreenshotManager.shared.addSanitizedElement(self)
         } else {
             ScreenshotManager.shared.removeSanitizedElement(self)

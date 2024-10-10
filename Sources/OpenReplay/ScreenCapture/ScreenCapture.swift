@@ -409,23 +409,15 @@ open class ScreenshotManager {
 
 // MARK: making extensions for UI
 struct SensitiveViewWrapperRepresentable: UIViewRepresentable {
-    let enabled: Bool
     @Binding var viewWrapper: SensitiveViewWrapper?
 
     func makeUIView(context: Context) -> SensitiveViewWrapper {
         let wrapper = SensitiveViewWrapper()
-        setViewWrapper(wrapper)
+        Task { @MainActor in viewWrapper = wrapper }
         return wrapper
     }
 
-    func updateUIView(_ wrapper: SensitiveViewWrapper, context: Context) {
-        setViewWrapper(enabled ? wrapper : nil)
-    }
-    
-    func setViewWrapper(_ wrapper: SensitiveViewWrapper?) {
-        guard viewWrapper != wrapper else { return }
-        Task { @MainActor in viewWrapper = wrapper }
-    }
+    func updateUIView(_ wrapper: SensitiveViewWrapper, context: Context) {}
 }
 
 struct SensitiveModifier: ViewModifier {
@@ -435,8 +427,8 @@ struct SensitiveModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .background(SensitiveViewWrapperRepresentable(enabled: enabled, viewWrapper: $viewWrapper))
-            .onAppear { viewWrapper?.onVisibilityChange(true) }
+            .background(SensitiveViewWrapperRepresentable(viewWrapper: $viewWrapper))
+            .onAppear { viewWrapper?.onVisibilityChange(enabled) }
             .onDisappear { viewWrapper?.onVisibilityChange(false) }
     }
 }
@@ -459,10 +451,10 @@ class SensitiveViewWrapper: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func didMoveToSuperview() {
-        super.didMoveToSuperview()
-        visibilityChanged(to: self.superview != nil)
-    }
+//    override func didMoveToSuperview() {
+//        super.didMoveToSuperview()
+//        visibilityChanged(to: self.superview != nil)
+//    }
     
     private func visibilityChanged(to visible: Bool) {
         if visible {

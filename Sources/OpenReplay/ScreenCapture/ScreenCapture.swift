@@ -93,10 +93,10 @@ open class ScreenshotManager {
         
         let format: UIGraphicsImageRendererFormat = .default()
         format.opaque = true
-        format.scale = screenScale
+        format.scale = 0.5 // screenScale
         let renderer = UIGraphicsImageRenderer(size: size, format: format)
         
-        let image = renderer.image { context in
+        let compressedData = renderer.jpegData(withCompressionQuality: self.settings.imgCompression) { context in
             window.drawHierarchy(in: window.bounds, afterScreenUpdates: false)
             
             if isBlurMode {
@@ -112,14 +112,12 @@ open class ScreenshotManager {
             }
         }
         
-        if let compressedData = image.jpegData(compressionQuality: self.settings.imgCompression) {
-            if (Openreplay.shared.bufferingMode) {
-                self.screenshotsBackup.append((compressedData, UInt64(Date().timeIntervalSince1970 * 1000)))
-            }
-            screenshots.append((compressedData, UInt64(Date().timeIntervalSince1970 * 1000)))
-            if !Openreplay.shared.bufferingMode && screenshots.count >= 20 {
-                self.sendScreenshots()
-            }
+        if (Openreplay.shared.bufferingMode) {
+            self.screenshotsBackup.append((compressedData, UInt64(Date().timeIntervalSince1970 * 1000)))
+        }
+        screenshots.append((compressedData, UInt64(Date().timeIntervalSince1970 * 1000)))
+        if !Openreplay.shared.bufferingMode && screenshots.count >= 20 {
+            self.sendScreenshots()
         }
     }
 

@@ -21,7 +21,7 @@ open class ScreenshotManager {
     private var firstTs: UInt64 = 0
     // MARK: capture settings
     // should we blur out sensitive views, or place a solid box on top
-    private var isBlurMode = false
+    private var isBlurMode = true
     private var blurRadius = 2.5
     // this affects how big the image will be compared to real phone screan.
     // we also can use default UIScreen.main.scale which is around 3.0 (dense pixel screen)
@@ -43,6 +43,10 @@ open class ScreenshotManager {
     
     func setSettings(settings: (captureRate: Double, imgCompression: Double)) {
         self.settings = settings
+    }
+    
+    func setBlurMode(_ isActive: Bool) {
+        isBlurMode = isActive
     }
     
     func stop() {
@@ -100,13 +104,63 @@ open class ScreenshotManager {
             window.drawHierarchy(in: window.bounds, afterScreenUpdates: false)
             
             if isBlurMode {
-                fatalError("Blur mode is not supported yet")
+                let stripeWidth: CGFloat = 5.0
+                let stripeSpacing: CGFloat = 15.0
+                let stripeColor: UIColor = .gray.withAlphaComponent(0.7)
+                
+                for element in sanitizedElements {
+                    if let frame = element.frameInWindow {
+                        let totalWidth = frame.size.width
+                        let totalHeight = frame.size.height
+                        let convertedFrame = CGRect(
+                            x: frame.origin.x,
+                            y: frame.origin.y,
+                            width: frame.size.width,
+                            height: frame.size.height
+                        )
+                        let cropFrame = CGRect(
+                            x: frame.origin.x * screenScale,
+                            y: frame.origin.y * screenScale,
+                            width: frame.size.width * screenScale,
+                            height: frame.size.height * screenScale
+                        )
+                        if let regionImage = context.currentImage.cgImage?.cropping(to: cropFrame) {
+                            let imageToBlur = UIImage(cgImage: regionImage, scale: screenScale, orientation: .up)
+                            let blurredImage = imageToBlur.applyBlurWithRadius(blurRadius)
+                            blurredImage?.draw(in: convertedFrame)
+                            
+                            context.cgContext.saveGState()
+                            UIRectClip(convertedFrame)
+                            
+                            // Draw diagonal lines within the clipped region
+                            for x in stride(from: -totalHeight, to: totalWidth, by: stripeSpacing + stripeWidth) {
+                                context.cgContext.move(to: CGPoint(x: x + convertedFrame.minX, y: convertedFrame.minY))
+                                context.cgContext.addLine(to: CGPoint(x: x + totalHeight + convertedFrame.minX, y: totalHeight + convertedFrame.minY))
+                            }
+                            
+                            context.cgContext.setLineWidth(stripeWidth)
+                            stripeColor.setStroke()
+                            context.cgContext.strokePath()
+                            context.cgContext.restoreGState()
+                            
+                            if (Openreplay.shared.options.debugImages) {
+                                context.cgContext.setStrokeColor(UIColor.black.cgColor)
+                                context.cgContext.setLineWidth(1)
+                                context.cgContext.stroke(convertedFrame)
+                            }
+                        }
+                    } else {
+                        removeSanitizedElement(element)
+                    }
+                }
             } else {
                 // UIColor.blue.setFill()
                 UIColor.black.setFill()
                 for element in sanitizedElements {
                     if let frame = element.frameInWindow {
                         context.fill(frame)
+                    } else {
+                        removeSanitizedElement(element)
                     }
                 }
             }

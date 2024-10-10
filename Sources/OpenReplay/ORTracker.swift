@@ -163,6 +163,10 @@ open class Openreplay: NSObject {
         ScreenshotManager.shared.addSanitizedElement(view)
     }
     
+    @objc open func setBlurMode(_ isActive: Bool) {
+        ScreenshotManager.shared.setBlurMode(isActive)
+    }
+    
     @objc open func setMetadata(key: String, value: String) {
         let message = ORMobileMetadata(key: key, value: value)
         MessageCollector.shared.sendMessage(message)

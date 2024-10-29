@@ -122,7 +122,7 @@ extension UIViewController {
     }
 }
 
-public class TouchTrackingWindow: UIWindow {
+open class TouchTrackingWindow: UIWindow {
     var touchStart: CGPoint?
     
     open override func sendEvent(_ event: UIEvent) {

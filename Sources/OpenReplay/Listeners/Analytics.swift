@@ -125,7 +125,7 @@ extension UIViewController {
 public class TouchTrackingWindow: UIWindow {
     var touchStart: CGPoint?
     
-    public override func sendEvent(_ event: UIEvent) {
+    open override func sendEvent(_ event: UIEvent) {
         super.sendEvent(event)
         
         guard let touches = event.allTouches else { return }

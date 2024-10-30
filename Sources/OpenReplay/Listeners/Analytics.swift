@@ -135,8 +135,9 @@ open class TouchTrackingWindow: UIWindow {
             case .began:
                 touchStart = touch.location(in: self)
             case .ended:
-                guard let touchStart else { continue }
+                guard let touchStart else { break }
                 let location = touch.location(in: self)
+                guard location.x >= 0, location.y >= 0 else { break }
                 let isSwipe = touchStart.distance(to: location) > 10
                 var event: ORMessage
                 let description = getViewDescription(touch.view) ?? "UIView"

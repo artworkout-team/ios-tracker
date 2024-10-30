@@ -123,7 +123,7 @@ extension UIViewController {
 }
 
 open class TouchTrackingWindow: UIWindow {
-    var touchStart: CGPoint?
+    var activeTouches = [UITouch: CGPoint]()
     
     open override func sendEvent(_ event: UIEvent) {
         super.sendEvent(event)
@@ -133,9 +133,9 @@ open class TouchTrackingWindow: UIWindow {
         for touch in touches {
             switch touch.phase {
             case .began:
-                touchStart = touch.location(in: self)
+                activeTouches[touch] = touch.location(in: self)
             case .ended:
-                guard let touchStart else { break }
+                guard let touchStart = activeTouches.removeValue(forKey: touch) else { break }
                 let location = touch.location(in: self)
                 guard location.x >= 0, location.y >= 0 else { break }
                 let isSwipe = touchStart.distance(to: location) > 10
@@ -148,7 +148,6 @@ open class TouchTrackingWindow: UIWindow {
                     event = ORMobileClickEvent(label: description, x: UInt64(location.x), y: UInt64(location.y))
                     DebugUtils.log("Touch from \(touchStart) to \(location)")
                 }
-                self.touchStart = nil
                 MessageCollector.shared.sendMessage(event)
             default:
                 break

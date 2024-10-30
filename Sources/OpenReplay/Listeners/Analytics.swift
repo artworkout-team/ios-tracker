@@ -134,7 +134,7 @@ open class TouchTrackingWindow: UIWindow {
             switch touch.phase {
             case .began:
                 activeTouches[touch] = touch.location(in: self)
-            case .ended:
+            case .ended, .cancelled:
                 guard let touchStart = activeTouches.removeValue(forKey: touch) else { break }
                 let location = touch.location(in: self)
                 guard location.x >= 0, location.y >= 0 else { break }

@@ -24,6 +24,40 @@ open class Analytics: NSObject {
         // Unswizzle (reverse the swizzling) if needed in the
     }
     
+    private var activeTouches = [UITouch: CGPoint]()
+    @objc func sendTouches(_ touches: Set<UITouch>, from window: UIView) {
+        for touch in touches {
+            switch touch.phase {
+                case .began:
+                    activeTouches[touch] = touch.location(in: window)
+                case .ended, .cancelled:
+                    guard let touchStart = activeTouches.removeValue(forKey: touch) else { break }
+                    let location = touch.location(in: window)
+                    guard location.x >= 0, location.y >= 0 else { break }
+                    let isSwipe = touchStart.distance(to: location) > 10
+                    var event: ORMessage
+                    let description = getViewDescription(touch.view) ?? "UIView"
+                    if isSwipe {
+                        DebugUtils.log("Swipe from \(touchStart) to \(location)")
+                        event = ORMobileSwipeEvent(
+                            label: description,
+                            x: UInt64(location.x), y: UInt64(location.y),
+                            direction: detectSwipeDirection(from: touchStart, to: location)
+                        )
+                    } else {
+                        event = ORMobileClickEvent(
+                            label: description,
+                            x: UInt64(location.x), y: UInt64(location.y)
+                        )
+                        DebugUtils.log("Touch from \(touchStart) to \(location)")
+                    }
+                    MessageCollector.shared.sendMessage(event)
+                default:
+                    break
+            }
+        }
+    }
+    
     @objc private func handleTap(gesture: UITapGestureRecognizer) {
         let location = gesture.location(in: nil)
         DebugUtils.log("Tap detected at: \(location)")
@@ -122,82 +156,45 @@ extension UIViewController {
     }
 }
 
-open class TouchTrackingWindow: UIWindow {
-    var activeTouches = [UITouch: CGPoint]()
-    
-    open override func sendEvent(_ event: UIEvent) {
-        super.sendEvent(event)
-        
-        guard let touches = event.allTouches else { return }
-    
-        for touch in touches {
-            switch touch.phase {
-            case .began:
-                activeTouches[touch] = touch.location(in: self)
-            case .ended, .cancelled:
-                guard let touchStart = activeTouches.removeValue(forKey: touch) else { break }
-                let location = touch.location(in: self)
-                guard location.x >= 0, location.y >= 0 else { break }
-                let isSwipe = touchStart.distance(to: location) > 10
-                var event: ORMessage
-                let description = getViewDescription(touch.view) ?? "UIView"
-                if isSwipe {
-                    DebugUtils.log("Swipe from \(touchStart) to \(location)")
-                    event = ORMobileSwipeEvent(label: description, x: UInt64(location.x),y: UInt64(location.y), direction: detectSwipeDirection(from: touchStart, to: location))
-                } else {
-                    event = ORMobileClickEvent(label: description, x: UInt64(location.x), y: UInt64(location.y))
-                    DebugUtils.log("Touch from \(touchStart) to \(location)")
-                }
-                MessageCollector.shared.sendMessage(event)
-            default:
-                break
-            }
-        }
+private func getViewDescription(_ view: UIView?) -> String? {
+    guard let view = view else {
+        return nil
     }
     
-    
-    private func getViewDescription(_ view: UIView?) -> String? {
-        guard let view = view else {
-            return nil
-        }
-        
-        if let textField = view as? UITextField {
-            return "UITextField '\(textField.placeholder ?? "No Placeholder")'"
-        } else if let label = view as? UILabel {
-            return "UILabel '\(label.text ?? "No Text")'"
-        } else if let button = view as? UIButton {
-            return "UIButton '\(button.currentTitle ?? "No Title")'"
-        } else if let textView = view as? UITextView {
-            return "UITextView '\(textView.text ?? "No Text")'"
-        } else {
-            return "\(type(of: view))"
-        }
-    }
-
-    
-    private func detectSwipeDirection(from start: CGPoint, to end: CGPoint) -> String {
-        let deltaX = end.x - start.x
-        let deltaY = end.y - start.y
-        
-        if abs(deltaX) > abs(deltaY) {
-            if deltaX > 0 {
-                return "right"
-            } else {
-                return "left"
-            }
-        } else if abs(deltaY) > abs(deltaX) {
-            if deltaY > 0 {
-                return "down"
-            } else {
-                return "up"
-            }
-        }
-        
-        return "right"
+    if let textField = view as? UITextField {
+        return "UITextField '\(textField.placeholder ?? "No Placeholder")'"
+    } else if let label = view as? UILabel {
+        return "UILabel '\(label.text ?? "No Text")'"
+    } else if let button = view as? UIButton {
+        return "UIButton '\(button.currentTitle ?? "No Title")'"
+    } else if let textView = view as? UITextView {
+        return "UITextView '\(textView.text ?? "No Text")'"
+    } else {
+        return "\(type(of: view))"
     }
 }
 
 
+private func detectSwipeDirection(from start: CGPoint, to end: CGPoint) -> String {
+    let deltaX = end.x - start.x
+    let deltaY = end.y - start.y
+    
+    if abs(deltaX) > abs(deltaY) {
+        if deltaX > 0 {
+            return "right"
+        } else {
+            return "left"
+        }
+    } else if abs(deltaY) > abs(deltaX) {
+        if deltaY > 0 {
+            return "down"
+        } else {
+            return "up"
+        }
+    }
+    
+    return "right"
+}
 
 extension CGPoint {
     func distance(to point: CGPoint) -> CGFloat {

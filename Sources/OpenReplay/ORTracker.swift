@@ -179,6 +179,10 @@ open class Openreplay: NSObject {
         ScreenshotManager.shared.setDrawHierarchyHandler(handler)
     }
     
+    @objc open func sendTouches(_ touches: Set<UITouch>, from window: UIView) {
+        Analytics.shared.sendTouches(touches, from: window)
+    }
+    
     @objc open func setMetadata(key: String, value: String) {
         let message = ORMobileMetadata(key: key, value: value)
         MessageCollector.shared.sendMessage(message)
